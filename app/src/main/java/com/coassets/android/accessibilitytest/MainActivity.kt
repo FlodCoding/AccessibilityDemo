@@ -1,10 +1,15 @@
 package com.coassets.android.accessibilitytest
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
 import android.view.Menu
 import android.view.MenuItem
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.google.android.material.snackbar.Snackbar
+import androidx.core.app.ActivityCompat
+import com.coassets.android.accessibilitytest.floating.FloatingService
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -15,8 +20,9 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(toolbar)
 
         fab.setOnClickListener { view ->
-            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                .setAction("Action", null).show()
+            /*Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                .setAction("Action", null).show()*/
+            startFloatingService()
         }
     }
 
@@ -35,4 +41,37 @@ class MainActivity : AppCompatActivity() {
             else -> super.onOptionsItemSelected(item)
         }
     }
+
+
+    fun startFloatingService() {
+
+        if (Settings.canDrawOverlays(this)) {
+            startService(Intent(this, FloatingService::class.java))
+        } else {
+            Toast.makeText(this, "当前无权限，请授权", Toast.LENGTH_SHORT).show()
+            ActivityCompat.startActivityForResult(
+                this,
+                Intent(
+                    Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                    Uri.parse("package:" + this.packageName)
+                ), 0, null
+            )
+
+
+        }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == 0) {
+            if (!Settings.canDrawOverlays(this)) {
+                Toast.makeText(this, "授权失败", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(this, "授权成功", Toast.LENGTH_SHORT).show()
+                startService(Intent(this, FloatingService::class.java))
+            }
+        }
+
+    }
+
 }
