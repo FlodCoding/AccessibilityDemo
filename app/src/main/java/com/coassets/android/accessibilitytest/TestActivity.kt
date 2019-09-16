@@ -42,6 +42,7 @@ class TestActivity : AppCompatActivity() {
             Log.d("gestureView", "OnGesturePerformedListener：" + gesture.toPath())
             this.gesture  = gesture
 
+
         }
 
         gestureView.setOnTouchListener(object : View.OnTouchListener {

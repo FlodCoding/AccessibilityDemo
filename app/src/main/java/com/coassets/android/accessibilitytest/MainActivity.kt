@@ -43,7 +43,7 @@ class MainActivity : AppCompatActivity() {
             //  screenshot()
             //screenshot()
 
-            startActivity(Intent(this,TestActivity::class.java))
+            startActivity(Intent(this,UnlockGestureActivity::class.java))
         }
     }
 

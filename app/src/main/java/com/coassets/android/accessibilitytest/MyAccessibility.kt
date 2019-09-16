@@ -29,7 +29,6 @@ class MyAccessibility : AccessibilityService() {
             gesture.strokes[0].points[0]
 
             val path = gesture.strokes[0].path
-            path.offset(0f, 200f)
             val description =
                 GestureDescription.StrokeDescription(path, 100, (gesture.length / 2).toLong())
             builder.addStroke(description)
