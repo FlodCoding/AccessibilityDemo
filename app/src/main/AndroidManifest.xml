@@ -5,6 +5,9 @@
 
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -14,7 +17,7 @@
         android:theme="@style/AppTheme"
         tools:ignore="GoogleAppIndexingWarning">
         <activity android:name=".UnlockGestureActivity"
-            android:theme="@style/AppTheme.NoActionBar.FullScreen">
+            android:theme="@style/AppTheme.NoActionBar.TEXT" >
 
         </activity>
         <activity

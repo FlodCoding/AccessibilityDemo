@@ -1,23 +1,37 @@
 package com.coassets.android.accessibilitytest
 
+import android.app.Activity
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
+import android.provider.MediaStore
 import android.view.Menu
 import android.view.MenuItem
-import android.widget.Toolbar
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.forEach
+import com.bumptech.glide.Glide
+import com.gyf.immersionbar.ImmersionBar
+import kotlinx.android.synthetic.main.activity_unlock_gesture.*
+
 
 class UnlockGestureActivity : AppCompatActivity() {
 
+    companion object {
+        const val RQ_SELECT_IMAGE = 0x01
+    }
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
+
         super.onCreate(savedInstanceState)
+        ImmersionBar.with(this).transparentBar().transparentNavigationBar().init()
+
         setContentView(R.layout.activity_unlock_gesture)
+        setSupportActionBar(toolbar)
+        toolbar.setNavigationOnClickListener {
+            finish()
+        }
 
-        val toolBar = findViewById<Toolbar>(R.id.toolbar)
-        toolBar.inflateMenu(R.menu.menu_unlock_gesture)
-        toolBar.menu.forEach { it.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS) }
-
-        setActionBar(toolBar)
+        //layGesture.startRecord()
 
     }
 
@@ -25,6 +39,51 @@ class UnlockGestureActivity : AppCompatActivity() {
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_unlock_gesture, menu)
         return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        super.onOptionsItemSelected(item)
+        return when (item.itemId) {
+            R.id.menu_reset_gesture -> {
+                layGesture.clear()
+                true
+            }
+
+            R.id.menu_reset_bg -> {
+                layGesture.clear()
+                startActivityForResult(
+                    Intent(
+                        Intent.ACTION_PICK,
+                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                    ), RQ_SELECT_IMAGE
+                )
+                true
+            }
+            R.id.menu_done ->{
+                layGesture.stopRecord()
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+
+        }
+    }
+
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == RQ_SELECT_IMAGE && resultCode == Activity.RESULT_OK) {
+            val imagePathUri = data?.data
+            setBackground(imagePathUri)
+        }
+    }
+
+
+    private fun setBackground(imagePathUri: Uri?) {
+        imagePathUri ?: return
+
+        Glide.with(this).load(imagePathUri)
+            .into(image)
+
     }
 
 }
