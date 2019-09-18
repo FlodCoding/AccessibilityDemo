@@ -51,8 +51,9 @@ class GestureCatchView @JvmOverloads constructor(
 
     //kotlin not work
     @Retention(AnnotationRetention.SOURCE)
-    @IntDef(DURATION, NEXT, KEEP)
+    @IntDef(DURATION, NEXT, KEEP, flag = true)
     annotation class PathKeepStyle
+
 
     //attrs
     private var globalPoint: Boolean         //true:以屏幕为坐标系   false:以View为坐标系
@@ -63,7 +64,6 @@ class GestureCatchView @JvmOverloads constructor(
     private var pathWidth: Int
     private var pathColor: Int
 
-    @PathKeepStyle
     private var pathKeepStyle: Int
     private var pathDuration: Long
 
@@ -86,7 +86,8 @@ class GestureCatchView @JvmOverloads constructor(
 
         val typeArray = context.obtainStyledAttributes(attrs, R.styleable.GestureCatchView)
         globalPoint = typeArray.getBoolean(R.styleable.GestureCatchView_globalPoint, true)
-        longPressDuration = typeArray.getInteger(R.styleable.GestureCatchView_longPressDuration, 1500).toLong()
+        longPressDuration =
+            typeArray.getInteger(R.styleable.GestureCatchView_longPressDuration, 1500).toLong()
         minPath = typeArray.getDimensionPixelSize(R.styleable.GestureCatchView_minPath, 12)
         pathWidth = typeArray.getDimensionPixelSize(R.styleable.GestureCatchView_pathWidth, 15)
         pathColor = typeArray.getColor(R.styleable.GestureCatchView_pathColor, Color.BLACK)
@@ -95,7 +96,8 @@ class GestureCatchView @JvmOverloads constructor(
         pathTopLayer = typeArray.getInteger(R.styleable.GestureCatchView_pathLayer, 0) == 0
 
         fadeEnabled = typeArray.getBoolean(R.styleable.GestureCatchView_fadeEnabled, true)
-        fadeDuration = typeArray.getInteger(R.styleable.GestureCatchView_fadeDuration, 1500).toLong()
+        fadeDuration =
+            typeArray.getInteger(R.styleable.GestureCatchView_fadeDuration, 1500).toLong()
 
         typeArray.recycle()
     }
@@ -108,6 +110,7 @@ class GestureCatchView @JvmOverloads constructor(
             dispatchGestureItemDraw(canvas)
             super.dispatchDraw(canvas)
         }
+
     }
 
 
@@ -228,7 +231,8 @@ class GestureCatchView @JvmOverloads constructor(
         private var mLastY: Float = 0f
         private val mPointBuffer: ArrayList<GesturePoint> = ArrayList()
 
-        private val mDelayTime: Long = if (startTimeTemp == 0L) 0 else System.currentTimeMillis() - startTimeTemp
+        private val mDelayTime: Long =
+            if (startTimeTemp == 0L) 0 else System.currentTimeMillis() - startTimeTemp
         private var mGesture: Gesture? = null
         private var isActionDown = false
         private var isLongPress = false
@@ -364,7 +368,7 @@ class GestureCatchView @JvmOverloads constructor(
                 gestureType = gestureType,
                 gesture = gesture,
                 delayTime = mDelayTime,
-                duration = System.currentTimeMillis() - mDelayTime
+                duration = curTime - startTimeTemp - mDelayTime
             )
 
             if (recordMark)
