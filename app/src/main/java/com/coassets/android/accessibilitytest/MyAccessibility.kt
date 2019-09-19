@@ -25,7 +25,7 @@ class MyAccessibility : AccessibilityService() {
     }
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
-        mGestures = intent.getParcelableArrayListExtra<GestureInfo>("gesture")
+        mGestures = intent.getParcelableArrayListExtra("gesture")
         startGesture(mGestures[mIndex])
         return super.onStartCommand(intent, flags, startId)
     }
@@ -66,6 +66,8 @@ class MyAccessibility : AccessibilityService() {
                 mIndex++
                 if (mGestures.size > mIndex) {
                     startGesture(mGestures[mIndex])
+                } else {
+                    mIndex = 0
                 }
 
             }
