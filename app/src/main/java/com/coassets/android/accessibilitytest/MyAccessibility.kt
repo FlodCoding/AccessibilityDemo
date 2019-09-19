@@ -3,7 +3,6 @@ package com.coassets.android.accessibilitytest
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription
 import android.content.Intent
-import android.graphics.Path
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import com.coassets.android.accessibilitytest.gesture.GestureInfo
@@ -17,40 +16,45 @@ import com.coassets.android.accessibilitytest.gesture.GestureInfo
  *
  */
 class MyAccessibility : AccessibilityService() {
+    private var mGestures: ArrayList<GestureInfo> = ArrayList()
+    private var mIndex = 0
+
+
     override fun onInterrupt() {
 
     }
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
-
-        val gesture = intent.getParcelableArrayListExtra<GestureInfo>("gesture")
-        startGesture(gesture)
+        mGestures = intent.getParcelableArrayListExtra<GestureInfo>("gesture")
+        startGesture(mGestures[mIndex])
         return super.onStartCommand(intent, flags, startId)
     }
 
 
-    fun startGesture(list: ArrayList<GestureInfo>) {
+    private fun startGesture(gestureInfo: GestureInfo) {
         val builder = GestureDescription.Builder()
-        val description =
-            GestureDescription.StrokeDescription(Path(), 0, 10)
 
-        for (gestureInfo in list) {
-            val gesture = gestureInfo.gesture
+        val gesture = gestureInfo.gesture
 
-            gesture.toPath()
-            val path = gesture.toPath()
-
-            var duration = gestureInfo.duration
-            if (duration > 60000) {
-                duration = 60000
-            }
-            description.continueStroke(path, gestureInfo.delayTime, duration, false)
+        var duration = gestureInfo.duration
+        if (duration > GestureDescription.getMaxGestureDuration()) {
+            duration = GestureDescription.getMaxGestureDuration()
         }
 
 
+        for (stroke in gesture.strokes.withIndex()) {
+            if (stroke.index == GestureDescription.getMaxStrokeCount() - 1)
+                break
+            val description =
+                GestureDescription.StrokeDescription(
+                    stroke.value.path,
+                    gestureInfo.delayTime,
+                    duration
+                )
 
+            builder.addStroke(description)
+        }
 
-        builder.addStroke(description)
 
         dispatchGesture(builder.build(), object : GestureResultCallback() {
             override fun onCancelled(gestureDescription: GestureDescription?) {
@@ -59,6 +63,11 @@ class MyAccessibility : AccessibilityService() {
 
             override fun onCompleted(gestureDescription: GestureDescription?) {
                 Log.d("MyAccessibility", "onCompleted")
+                mIndex++
+                if (mGestures.size > mIndex) {
+                    startGesture(mGestures[mIndex])
+                }
+
             }
         }, null)
     }
