@@ -11,7 +11,7 @@ import android.provider.Settings
 import android.view.MotionEvent
 import android.view.View
 import android.view.WindowManager
-import android.widget.Button
+import com.coassets.android.accessibilitytest.gesture.GestureCatchView
 
 
 /**
@@ -37,27 +37,55 @@ class FloatingService : Service() {
         if (Settings.canDrawOverlays(this)) {
             val windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
             // 新建悬浮窗控件
-            val button = Button(applicationContext)
-            button.text = "Floating Window"
-            button.setBackgroundColor(Color.BLUE)
+            val button = TestView(applicationContext)
+           // button.setBackgroundColor(Color.parseColor("#3fffffff"))
+            button.setBackgroundColor(Color.BLACK)
+            //button.isFocusable = true
+            //button.
             //button.setOnTouchListener(FloatingOnTouchListener())
-
             // 设置LayoutParam
             val layoutParams = WindowManager.LayoutParams()
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                layoutParams.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
+                layoutParams.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
             } else {
                 layoutParams.type = WindowManager.LayoutParams.TYPE_TOAST;
             }
-            layoutParams.format = PixelFormat.RGBA_8888;
+            layoutParams.format = PixelFormat.RGBA_8888
             layoutParams.width = 100;
             layoutParams.height = 100;
-            layoutParams.x = 300;
-            layoutParams.y = 300;
+           /* layoutParams.x = 300;
+            layoutParams.y = 300;*/
+            layoutParams.flags =
+            WindowManager.LayoutParams.FLAG_SPLIT_TOUCH or
+                    WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
 
+
+            val gestureCatchView = GestureCatchView(this)
+            gestureCatchView.setBackgroundColor(Color.TRANSPARENT)
+            val gl = WindowManager.LayoutParams()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                gl.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
+            } else {
+                gl.type = WindowManager.LayoutParams.TYPE_TOAST;
+            }
+
+            gl.width = 10000
+            gl.height = 10000
+            //gl.x = 300
+
+            gl.flags =
+                WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+            gl.format = PixelFormat.RGBA_8888
+            button.setOnTouchListener { v, event ->
+                //gestureCatchView.dispatchTouchEvent(event)
+                true
+            }
+
+
+            //windowManager.addView(gestureCatchView, gl)
             // 将悬浮窗控件添加到WindowManager
-            windowManager.addView(button, layoutParams);
+            windowManager.addView(button, layoutParams)
 
         }
 

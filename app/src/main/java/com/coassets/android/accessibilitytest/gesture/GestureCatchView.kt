@@ -40,7 +40,7 @@ class GestureCatchView @JvmOverloads constructor(
     defStyleAttr: Int = 0
 ) : FrameLayout(context, attrs, defStyleAttr) {
 
-    companion object {
+    private companion object {
         private const val DEBUG = true
         private const val TAG = "GestureCatchView"
 

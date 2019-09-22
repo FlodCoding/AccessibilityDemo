@@ -21,6 +21,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.coassets.android.accessibilitytest.floating.FloatingService
+import com.coassets.android.accessibilitytest.floating.FloatingWindowsUtil
 import kotlinx.android.synthetic.main.activity_main.*
 
 
@@ -43,7 +44,8 @@ class MainActivity : AppCompatActivity() {
             //  screenshot()
             //screenshot()
 
-            startActivity(Intent(this,UnlockGestureActivity::class.java))
+           // startActivity(Intent(this,UnlockGestureActivity::class.java))
+            FloatingWindowsUtil.startFloatingService(this)
         }
     }
 

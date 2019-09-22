@@ -6,7 +6,7 @@ import android.net.Uri
 import android.provider.Settings
 import android.widget.Toast
 import androidx.core.app.ActivityCompat.startActivityForResult
-
+import com.coassets.android.accessibilitytest.GestureRecordService
 
 
 /**
@@ -19,7 +19,7 @@ object FloatingWindowsUtil {
     fun startFloatingService(activity: Activity) {
 
         if (Settings.canDrawOverlays(activity)) {
-            activity.startService(Intent(activity, FloatingService::class.java))
+            activity.startService(Intent(activity.applicationContext, GestureRecordService::class.java))
         } else {
             Toast.makeText(activity, "当前无权限，请授权", Toast.LENGTH_SHORT).show()
             startActivityForResult(

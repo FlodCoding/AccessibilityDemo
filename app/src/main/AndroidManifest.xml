@@ -47,6 +47,7 @@
                 android:resource="@xml/accessibility" />
         </service>
         <service android:name=".floating.FloatingService" />
+        <service android:name=".GestureRecordService" />
     </application>
 
 </manifest>

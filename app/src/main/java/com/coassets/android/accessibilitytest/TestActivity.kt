@@ -107,6 +107,8 @@ class TestActivity : AppCompatActivity() {
             intent.putExtra("gesture", gesture)
             startService(intent)
         }
+
+
     }
 
 
