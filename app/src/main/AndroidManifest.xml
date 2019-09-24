@@ -36,7 +36,7 @@
         </activity>
 
         <service
-            android:name=".MyAccessibility"
+            android:name=".GestureAccessibility"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
             <intent-filter>
                 <action android:name="android.accessibilityservice.AccessibilityService" />

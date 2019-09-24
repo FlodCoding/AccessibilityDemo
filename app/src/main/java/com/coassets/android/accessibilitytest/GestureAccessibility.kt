@@ -2,6 +2,7 @@ package com.coassets.android.accessibilitytest
 
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription
+import android.content.Context
 import android.content.Intent
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
@@ -15,9 +16,26 @@ import com.coassets.android.accessibilitytest.gesture.GestureInfo
  * UseDes:
  *
  */
-class MyAccessibility : AccessibilityService() {
+class GestureAccessibility : AccessibilityService() {
     private var mGestures: ArrayList<GestureInfo> = ArrayList()
     private var mIndex = 0
+
+    companion object {
+
+        fun startGestures(context: Context, gestures: ArrayList<GestureInfo>) {
+            val intent = Intent(context, GestureAccessibility::class.java)
+            intent.putParcelableArrayListExtra("gesture", gestures)
+            intent.putExtra("isList", true)
+            context.startService(intent)
+        }
+
+        fun startGesture(context: Context, gestures: GestureInfo) {
+            val intent = Intent(context, GestureAccessibility::class.java)
+            intent.putExtra("isList", false)
+            intent.putExtra("gesture", gestures)
+            context.startService(intent)
+        }
+    }
 
 
     override fun onInterrupt() {
@@ -25,7 +43,15 @@ class MyAccessibility : AccessibilityService() {
     }
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
-        mGestures = intent.getParcelableArrayListExtra("gesture")
+        val isList = intent.getBooleanExtra("isList", false)
+        if (isList) {
+            mGestures = intent.getParcelableArrayListExtra("gesture")
+        } else {
+            val gesture = intent.getParcelableExtra<GestureInfo>("gesture")
+            mGestures.clear()
+            mGestures.add(gesture)
+        }
+        
         startGesture(mGestures[mIndex])
         return super.onStartCommand(intent, flags, startId)
     }
@@ -58,11 +84,11 @@ class MyAccessibility : AccessibilityService() {
 
         dispatchGesture(builder.build(), object : GestureResultCallback() {
             override fun onCancelled(gestureDescription: GestureDescription?) {
-                Log.d("MyAccessibility", "onCancelled")
+                Log.d("GestureAccessibility", "onCancelled")
             }
 
             override fun onCompleted(gestureDescription: GestureDescription?) {
-                Log.d("MyAccessibility", "onCompleted")
+                Log.d("GestureAccessibility", "onCompleted")
                 mIndex++
                 if (mGestures.size > mIndex) {
                     startGesture(mGestures[mIndex])

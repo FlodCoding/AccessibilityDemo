@@ -25,8 +25,6 @@ import com.coassets.android.accessibilitytest.floating.FloatingWindowsUtil
 import kotlinx.android.synthetic.main.activity_main.*
 
 
-
-
 class MainActivity : AppCompatActivity() {
 
     lateinit var mediaProjection: MediaProjection
@@ -44,11 +42,10 @@ class MainActivity : AppCompatActivity() {
             //  screenshot()
             //screenshot()
 
-           // startActivity(Intent(this,UnlockGestureActivity::class.java))
+            // startActivity(Intent(this,UnlockGestureActivity::class.java))
             FloatingWindowsUtil.startFloatingService(this)
         }
     }
-
 
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -116,7 +113,7 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    fun createVirtualDisplay() {
+    private fun createVirtualDisplay() {
         val metric = DisplayMetrics()
 
         windowManager.defaultDisplay.getMetrics(metric)

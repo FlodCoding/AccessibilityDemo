@@ -102,7 +102,7 @@ class UnlockGestureActivity : AppCompatActivity() {
     fun startAccessibility(list: ArrayList<GestureInfo>) {
 
 
-        val intent = Intent(this, MyAccessibility::class.java)
+        val intent = Intent(this, GestureAccessibility::class.java)
         intent.putExtra("gesture", list)
         startService(intent)
     }

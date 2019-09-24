@@ -81,6 +81,7 @@ class GestureCatchView @JvmOverloads constructor(
     var onGestureListener: OnGestureListener? = null
 
 
+
     init {
         setWillNotDraw(false)
 
@@ -207,6 +208,18 @@ class GestureCatchView @JvmOverloads constructor(
     /* fun loadGesture(){
 
      }*/
+
+
+    open class SimpleOnGestureListener : OnGestureListener {
+        override fun onGesturing(gesturePoint: GesturePoint) {
+
+        }
+
+        override fun onGestureFinish(gestureType: GestureType, gestureInfo: GestureInfo) {
+
+        }
+
+    }
 
 
     interface OnGestureListener {

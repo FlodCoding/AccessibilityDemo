@@ -4,10 +4,17 @@ import android.annotation.SuppressLint
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.graphics.PixelFormat
+import android.os.Build
 import android.os.IBinder
-import android.view.MotionEvent
-import android.view.View
+import android.os.SystemClock
+import android.view.Gravity
+import android.view.LayoutInflater
 import android.view.WindowManager
+import com.coassets.android.accessibilitytest.gesture.GestureCatchView
+import com.coassets.android.accessibilitytest.gesture.GestureInfo
+import com.coassets.android.accessibilitytest.gesture.GestureType
+import kotlinx.android.synthetic.main.layout_record_floating_btn.view.*
 
 /**
  * SimpleDes:
@@ -18,92 +25,102 @@ import android.view.WindowManager
  */
 class GestureRecordService : Service() {
 
+    private lateinit var gestureCatchView: GestureCatchView
+
     override fun onBind(intent: Intent?): IBinder? {
         return null
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        initFloatingBtn()
+        val windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
+
+        gestureCatchView = initGestureView(windowManager)
+        initRecordBtn(windowManager)
         return super.onStartCommand(intent, flags, startId)
     }
 
 
     @SuppressLint("InflateParams")
-    private fun initFloatingBtn() {
-        /*val windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        val recordFloatingBtn = LayoutInflater.from(applicationContext).inflate(R.layout.layout_record_floating_btn,null) as MovableButton
+    private fun initRecordBtn(windowManager: WindowManager) {
 
-        val layStartRecord = recordFloatingBtn.layRecord
-       // val tvRecord = recordFloatingBtn.tvRecord
-        val layClose = recordFloatingBtn.layClose
-        recordFloatingBtn.layRecord.setOnClickListener {
-           // tvRecord.start()
-        }
+        val recordBtn = LayoutInflater.from(this).inflate(
+            R.layout.layout_record_floating_btn,
+            null
+        ) as MovableButton
+        val layRecord = recordBtn.layRecord
+        val tvRecord = recordBtn.tvRecord
+        val imRecord = recordBtn.imRecord
+        val layClose = recordBtn.layClose;
+        tvRecord.text = "开始"
 
-        recordFloatingBtn.layClose.setOnClickListener {
-            windowManager.removeView(recordFloatingBtn)
-        }
-
-        val layoutParams = WindowManager.LayoutParams()
-        recordFloatingBtn.layoutParams = layoutParams
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            layoutParams.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-        } else {
-            layoutParams.type = WindowManager.LayoutParams.TYPE_TOAST;
-        }
-        layoutParams.format = PixelFormat.RGBA_8888
-        layoutParams.width = WindowManager.LayoutParams.WRAP_CONTENT
-        layoutParams.height = WindowManager.LayoutParams.WRAP_CONTENT
-        layoutParams.gravity = Gravity.START
-        layoutParams.x = 100
-        layoutParams.y = 100
-        layoutParams.flags =   WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
-
-        //recordFloatingBtn.setOnTouchListener(RecordFloatingBtnOnTouchListener(layoutParams))
-
-        //recordFloatingBtn.setOnKeyListener()
-
-        windowManager.addView(recordFloatingBtn, layoutParams)*/
-        val windowManager = applicationContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-
-        val movableButton = MovableButton(this)
-        windowManager.addView(movableButton, movableButton.windowLayoutParams)
-
-
-    }
-
-
-    //TODO 自动停靠
-    private class RecordFloatingBtnOnTouchListener(private val layoutParams: WindowManager.LayoutParams) :
-        View.OnTouchListener {
-        private var x: Float = 0f
-        private var y: Float = 0f
-
-        @SuppressLint("ClickableViewAccessibility")
-        override fun onTouch(view: View?, event: MotionEvent?): Boolean {
-            when (event?.action) {
-                MotionEvent.ACTION_DOWN -> {
-                    x = event.rawX
-                    y = event.rawY
-                }
-
-                MotionEvent.ACTION_MOVE -> {
-                    val nowX = event.rawX
-                    val nowY = event.rawY
-                    val movedX = nowX - x
-                    val movedY = nowY - y
-                    x = nowX
-                    y = nowY
-                    layoutParams.x = (layoutParams.x + movedX).toInt()
-                    layoutParams.y = (layoutParams.y + movedY).toInt()
-                    val windowManager =
-                        view?.context?.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-                    windowManager.updateViewLayout(view, layoutParams)
-                }
-
+        layRecord.setOnClickListener {
+            it.isActivated = !it.isActivated
+            if (it.isActivated) {
+                //Start
+                imRecord.setImageResource(R.drawable.ic_stop_white)
+                tvRecord.base = SystemClock.elapsedRealtime()
+                tvRecord.start()
+                startRecord()
+            } else {
+                //STOP
+                imRecord.setImageResource(R.drawable.ic_circle_white)
+                tvRecord.stop()
+                stopRecord()
 
             }
-            return false
         }
+
+        layClose.setOnClickListener {
+            tvRecord.stop()
+            windowManager.removeView(recordBtn)
+        }
+
+
+        windowManager.addView(recordBtn, recordBtn.windowLayoutParams)
+
     }
+
+    private fun initGestureView(windowManager: WindowManager): GestureCatchView {
+
+        val gestureCatchView = GestureCatchView(this)
+        val params = WindowManager.LayoutParams()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            params.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+        } else {
+            params.type = WindowManager.LayoutParams.TYPE_TOAST;
+        }
+        params.format = PixelFormat.RGBA_8888
+        params.width = WindowManager.LayoutParams.MATCH_PARENT
+        params.height = WindowManager.LayoutParams.MATCH_PARENT
+        params.gravity = Gravity.START
+        params.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+
+
+        gestureCatchView.onGestureListener = object : GestureCatchView.SimpleOnGestureListener() {
+            override fun onGestureFinish(gestureType: GestureType, gestureInfo: GestureInfo) {
+                //TODO 是否有可能不断 enable GestureCatchView
+                //完成一个手势
+                dispatchGesture(gestureInfo)
+            }
+        }
+
+        windowManager.addView(gestureCatchView, params)
+        return gestureCatchView
+    }
+
+
+    private fun dispatchGesture(gestureInfo: GestureInfo) {
+
+        GestureAccessibility.startGesture(this, gestureInfo)
+    }
+
+    private fun startRecord() {
+        gestureCatchView.startRecord()
+    }
+
+    private fun stopRecord() {
+        gestureCatchView.stopRecord()
+    }
+
+
 }
