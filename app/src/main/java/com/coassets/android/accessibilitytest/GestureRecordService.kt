@@ -46,7 +46,7 @@ class GestureRecordService : Service() {
         val recordBtn = LayoutInflater.from(this).inflate(
             R.layout.layout_record_floating_btn,
             null
-        ) as MovableButton
+        ) as MovableLayout
         val layRecord = recordBtn.layRecord
         val tvRecord = recordBtn.tvRecord
         val imRecord = recordBtn.imRecord

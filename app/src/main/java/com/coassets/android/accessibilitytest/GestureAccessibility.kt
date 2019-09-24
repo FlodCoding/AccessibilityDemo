@@ -4,6 +4,7 @@ import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription
 import android.content.Context
 import android.content.Intent
+import android.content.ServiceConnection
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import com.coassets.android.accessibilitytest.gesture.GestureInfo
@@ -102,8 +103,14 @@ class GestureAccessibility : AccessibilityService() {
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
 
-
+    
     }
+
+    override fun bindService(service: Intent?, conn: ServiceConnection, flags: Int): Boolean {
+
+        return super.bindService(service, conn, flags)
+    }
+
 
 
 }
