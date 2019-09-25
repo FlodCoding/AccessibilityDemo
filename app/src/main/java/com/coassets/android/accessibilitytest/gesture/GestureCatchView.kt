@@ -72,7 +72,7 @@ class GestureCatchView @JvmOverloads constructor(
 
 
     private var isRecoding = false
-    private var startTimeTemp: Long = 0   //开始手势的时间点（用来得到开始时间到手指触摸的时间）
+    private var startTimeTemp: Long = 0   //开始记录手势的时间点（用来得到开始时间到手指触摸的时间）
 
     private var mGestureItemTemp: GestureItem? = null
     private val mGestureItemTempList: ArrayList<GestureItem> = ArrayList()
@@ -195,6 +195,7 @@ class GestureCatchView @JvmOverloads constructor(
 
     fun stopRecord(): ArrayList<GestureInfo> {
         isRecoding = false
+        startTimeTemp = 0
         return mGestureInfoList
     }
 
@@ -245,13 +246,12 @@ class GestureCatchView @JvmOverloads constructor(
         private val mPointBuffer: ArrayList<GesturePoint> = ArrayList()
 
         private val mDelayTime: Long =
-            if (startTimeTemp == 0L) 0 else System.currentTimeMillis() - startTimeTemp
+            if (!isRecoding || startTimeTemp == 0L) 0 else System.currentTimeMillis() - startTimeTemp
         private var mGesture: Gesture? = null
         private var isActionDown = false
         private var isLongPress = false
         private var drawRequest = true
 
-        private val recordMark: Boolean         //被标记为记录的Item
 
 
         private val longPressRunnable: Runnable = Runnable {
@@ -289,11 +289,14 @@ class GestureCatchView @JvmOverloads constructor(
             })
 
 
-            recordMark = isRecoding
         }
 
 
         fun startPath(event: MotionEvent) {
+            //如果当前不是在录制手势，那以此为开始手势时间点
+            if (!isRecoding)
+                startTimeTemp = System.currentTimeMillis()
+
             val x = event.x
             val y = event.y
 
@@ -384,7 +387,8 @@ class GestureCatchView @JvmOverloads constructor(
                 duration = curTime - startTimeTemp - mDelayTime
             )
 
-            if (recordMark)
+            log(gestureInfo.toString())
+            if (isRecoding)
                 mGestureInfoList.add(gestureInfo)
 
             onGestureListener?.onGestureFinish(gestureType, gestureInfo)

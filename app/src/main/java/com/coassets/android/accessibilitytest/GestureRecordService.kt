@@ -4,12 +4,12 @@ import android.annotation.SuppressLint
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
 import android.graphics.PixelFormat
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
 import android.os.SystemClock
-import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.WindowManager
 import com.coassets.android.accessibilitytest.gesture.GestureCatchView
@@ -24,33 +24,46 @@ import kotlinx.android.synthetic.main.layout_record_floating_btn.view.*
  * UseDes:
  *
  */
+@SuppressLint("InflateParams")
 class GestureRecordService : Service() {
 
-    private lateinit var gestureCatchView: GestureCatchView
+    private val windowManager by lazy { getSystemService(Context.WINDOW_SERVICE) as WindowManager }
 
-   class TestBinder : Binder() {
-       fun test(){
-           //XXX
-       }
+    private val gestureResultCallback = IGestureRecordBinder()
 
-   }
+    private val gestureView: GestureCatchView by lazy {
+        val gestureCatchView = GestureCatchView(this)
+        gestureCatchView.setBackgroundColor(Color.WHITE)
+        gestureCatchView.alpha = 0.5f
+        gestureViewParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
 
-    override fun onBind(intent: Intent?): IBinder? {
-        return TestBinder()
+        gestureCatchView.onGestureListener = object : GestureCatchView.SimpleOnGestureListener() {
+            override fun onGestureFinish(gestureType: GestureType, gestureInfo: GestureInfo) {
+                //TODO 是否有可能不断 enable GestureCatchView
+                //完成一个手势
+
+                gestureInfo.delayTime = 500
+                enableGestureCatchView(false)
+                dispatchGesture(gestureInfo)
+            }
+        }
+        gestureCatchView
     }
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val windowManager = getSystemService(Context.WINDOW_SERVICE) as WindowManager
-
-        gestureCatchView = initGestureView(windowManager)
-        initRecordBtn(windowManager)
-        return super.onStartCommand(intent, flags, startId)
+    private val gestureViewParams by lazy {
+        val params = WindowManager.LayoutParams()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            params.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+        } else {
+            params.type = WindowManager.LayoutParams.TYPE_TOAST;
+        }
+        params.format = PixelFormat.RGBA_8888
+        params.width = WindowManager.LayoutParams.MATCH_PARENT
+        params.height = WindowManager.LayoutParams.MATCH_PARENT
+        params
     }
 
-
-    @SuppressLint("InflateParams")
-    private fun initRecordBtn(windowManager: WindowManager) {
-
+    private val recordBtn by lazy {
         val recordBtn = LayoutInflater.from(this).inflate(
             R.layout.layout_record_floating_btn,
             null
@@ -83,69 +96,72 @@ class GestureRecordService : Service() {
         layClose.setOnClickListener {
             tvRecord.stop()
             windowManager.removeView(recordBtn)
-            windowManager.removeView(gestureCatchView)
+            windowManager.removeView(gestureView)
+            stopSelf()
+        }
+        recordBtn
+    }
+
+
+    inner class IGestureRecordBinder : Binder() {
+
+        fun getService(): GestureRecordService {
+            return this@GestureRecordService
         }
 
+        fun setOnGestureRecordedListener(listener: OnGestureRecordedListener?) {
+            onGestureRecordedListener = listener
+        }
 
-        windowManager.addView(recordBtn, recordBtn.windowLayoutParams)
+        fun onResult(isCancel: Boolean) {
+            enableGestureCatchView(true)
+        }
 
     }
 
-    private fun initGestureView(windowManager: WindowManager): GestureCatchView {
+    private var onGestureRecordedListener: OnGestureRecordedListener? = null
 
-        val gestureCatchView = GestureCatchView(this)
-        val params = WindowManager.LayoutParams()
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            params.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-        } else {
-            params.type = WindowManager.LayoutParams.TYPE_TOAST;
-        }
-        params.format = PixelFormat.RGBA_8888
-        params.width = WindowManager.LayoutParams.MATCH_PARENT
-        params.height = WindowManager.LayoutParams.MATCH_PARENT
-        params.gravity = Gravity.START
-        params.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+    interface OnGestureRecordedListener {
+        fun onRecorded(gestureInfo: GestureInfo)
+    }
 
 
-        gestureCatchView.onGestureListener = object : GestureCatchView.SimpleOnGestureListener() {
-            override fun onGestureFinish(gestureType: GestureType, gestureInfo: GestureInfo) {
-                //TODO 是否有可能不断 enable GestureCatchView
-                //完成一个手势
-
-
-
-                disableGestureCatchView(windowManager, params, 0 + gestureInfo.duration)
-                dispatchGesture(gestureInfo)
-            }
-        }
-
-        windowManager.addView(gestureCatchView, params)
-        return gestureCatchView
+    override fun onBind(intent: Intent?): IBinder? {
+        windowManager.addView(gestureView, gestureViewParams)
+        windowManager.addView(recordBtn, recordBtn.windowLayoutParams)
+        return gestureResultCallback
     }
 
 
     private fun dispatchGesture(gestureInfo: GestureInfo) {
+        onGestureRecordedListener?.onRecorded(gestureInfo)
         //GestureAccessibility.startGesture(this, gestureInfo)
     }
 
     private fun startRecord() {
-        gestureCatchView.startRecord()
+        enableGestureCatchView(true)
+        gestureView.startRecord()
     }
 
     private fun stopRecord() {
-        gestureCatchView.stopRecord()
+        enableGestureCatchView(false)
+        gestureView.stopRecord()
     }
 
 
-    private fun disableGestureCatchView(windowManager: WindowManager, params: WindowManager.LayoutParams, duration: Long) {
-        params.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
-        windowManager.updateViewLayout(gestureCatchView, params)
-        gestureCatchView.postDelayed({
-            params.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
-            windowManager.updateViewLayout(gestureCatchView, params)
-        }, duration)
-        //TODO
-        //gestureCatchView.removeCallbacks()
+    private fun enableGestureCatchView(enable: Boolean) {
+        if (enable) {
+            gestureViewParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+            gestureView.alpha = 0.5f
+            //gestureViewParams.alpha = 1f
+        } else {
+            gestureViewParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+            gestureView.alpha = 1f
+           //gestureViewParams.alpha = 0.5f
+        }
+
+        //TODO 会有延迟
+        windowManager.updateViewLayout(gestureView, gestureViewParams)
     }
 
 

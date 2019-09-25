@@ -19,7 +19,7 @@ object FloatingWindowsUtil {
     fun startFloatingService(activity: Activity) {
 
         if (Settings.canDrawOverlays(activity)) {
-            activity.startService(Intent(activity.applicationContext, GestureAccessibility::class.java))
+            GestureAccessibility.startServiceWithRecord(activity)
         } else {
             Toast.makeText(activity, "当前无权限，请授权", Toast.LENGTH_SHORT).show()
             startActivityForResult(

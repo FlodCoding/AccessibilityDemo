@@ -25,8 +25,8 @@ data class GestureInfo(
     var id: Long = 0,
     val gestureType: GestureType,
     val gesture: Gesture,
-    val delayTime: Long,
-    val duration: Long
+    var delayTime: Long,
+    var duration: Long
 ) : Parcelable {
     constructor(parcel: Parcel) : this(
         parcel.readLong(),
@@ -48,6 +48,10 @@ data class GestureInfo(
         return 0
     }
 
+    override fun toString(): String {
+        return "GestureInfo(id=$id, gestureType=$gestureType, delayTime=$delayTime, duration=$duration)"
+    }
+
     companion object CREATOR : Parcelable.Creator<GestureInfo> {
         override fun createFromParcel(parcel: Parcel): GestureInfo {
             return GestureInfo(parcel)
@@ -57,6 +61,8 @@ data class GestureInfo(
             return arrayOfNulls(size)
         }
     }
+
+
 }
 
 
@@ -81,6 +87,9 @@ class GestureConverter {
     fun stringToGestureType(gestureType: String): GestureType {
         return GestureType.valueOf(gestureType)
     }
+
+
+
 }
 
 
