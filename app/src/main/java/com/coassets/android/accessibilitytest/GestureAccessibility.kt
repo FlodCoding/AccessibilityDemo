@@ -2,9 +2,11 @@ package com.coassets.android.accessibilitytest
 
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
+import android.os.IBinder
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import com.coassets.android.accessibilitytest.gesture.GestureInfo
@@ -18,49 +20,91 @@ import com.coassets.android.accessibilitytest.gesture.GestureInfo
  *
  */
 class GestureAccessibility : AccessibilityService() {
-    private var mGestures: ArrayList<GestureInfo> = ArrayList()
-    private var mIndex = 0
+
 
     companion object {
+        private const val KEY_IS_RECORD = "KEY_IS_RECORD"
 
         fun startGestures(context: Context, gestures: ArrayList<GestureInfo>) {
             val intent = Intent(context, GestureAccessibility::class.java)
             intent.putParcelableArrayListExtra("gesture", gestures)
-            intent.putExtra("isList", true)
             context.startService(intent)
         }
 
-        fun startGesture(context: Context, gestures: GestureInfo) {
+        fun startServiceWithRecord(context: Context) {
             val intent = Intent(context, GestureAccessibility::class.java)
-            intent.putExtra("isList", false)
-            intent.putExtra("gesture", gestures)
+            intent.putExtra(KEY_IS_RECORD, false)
             context.startService(intent)
         }
     }
 
 
-    override fun onInterrupt() {
+    override fun bindService(service: Intent?, conn: ServiceConnection, flags: Int): Boolean {
 
+        return super.bindService(service, conn, flags)
     }
 
     override fun onStartCommand(intent: Intent, flags: Int, startId: Int): Int {
-        val isList = intent.getBooleanExtra("isList", false)
-        if (isList) {
-            mGestures = intent.getParcelableArrayListExtra("gesture")
+        Log.d("GestureAccessibility", "onStartCommand")
+        val isRecord = intent.getBooleanExtra(KEY_IS_RECORD, false)
+        if (!isRecord) {
+            val gestures = intent.getParcelableArrayListExtra<GestureInfo>("gesture")
+            if (gestures != null) {
+                dispatchGestures(gestures)
+            }
         } else {
-            val gesture = intent.getParcelableExtra<GestureInfo>("gesture")
-            mGestures.clear()
-            mGestures.add(gesture)
+            //RecordGesture
+            bindGestureRecordService()
         }
-        
-        startGesture(mGestures[mIndex])
+
         return super.onStartCommand(intent, flags, startId)
     }
 
 
-    private fun startGesture(gestureInfo: GestureInfo) {
-        val builder = GestureDescription.Builder()
+    private fun dispatchGestures(gestures: ArrayList<GestureInfo>) {
 
+        var index = 0
+        val callBack = object : GestureResultCallback() {
+            override fun onCancelled(gestureDescription: GestureDescription?) {
+                Log.d("GestureAccessibility", "onCancelled")
+            }
+
+            override fun onCompleted(gestureDescription: GestureDescription?) {
+                Log.d("GestureAccessibility", "onCompleted")
+                index++
+
+                if (gestures.size > index) {
+                    startGesture(gestures[index], this)
+                } else {
+                    index = 0
+                }
+
+            }
+        }
+
+        for (gesture in gestures) {
+            startGesture(gesture, callBack)
+        }
+    }
+
+
+    private fun bindGestureRecordService() {
+        val serviceConnection = object : ServiceConnection {
+            override fun onServiceDisconnected(name: ComponentName?) {
+                Log.d("GestureAccessibility", "onServiceDisconnected")
+
+            }
+
+            override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+                Log.d("GestureAccessibility", "onServiceConnected")
+            }
+        }
+
+        bindService(Intent(this, GestureRecordService::class.java), serviceConnection, Context.BIND_AUTO_CREATE)
+    }
+
+    private fun startGesture(gestureInfo: GestureInfo, gestureResultCallback: GestureResultCallback) {
+        val builder = GestureDescription.Builder()
         val gesture = gestureInfo.gesture
 
         var duration = gestureInfo.duration
@@ -68,49 +112,28 @@ class GestureAccessibility : AccessibilityService() {
             duration = GestureDescription.getMaxGestureDuration()
         }
 
-
         for (stroke in gesture.strokes.withIndex()) {
             if (stroke.index == GestureDescription.getMaxStrokeCount() - 1)
                 break
             val description =
-                GestureDescription.StrokeDescription(
-                    stroke.value.path,
-                    gestureInfo.delayTime,
-                    duration
-                )
+                GestureDescription.StrokeDescription(stroke.value.path, gestureInfo.delayTime, duration)
 
             builder.addStroke(description)
         }
 
-
-        dispatchGesture(builder.build(), object : GestureResultCallback() {
-            override fun onCancelled(gestureDescription: GestureDescription?) {
-                Log.d("GestureAccessibility", "onCancelled")
-            }
-
-            override fun onCompleted(gestureDescription: GestureDescription?) {
-                Log.d("GestureAccessibility", "onCompleted")
-                mIndex++
-                if (mGestures.size > mIndex) {
-                    startGesture(mGestures[mIndex])
-                } else {
-                    mIndex = 0
-                }
-
-            }
-        }, null)
+        dispatchGesture(builder.build(), gestureResultCallback, null)
     }
+
+
+    override fun onInterrupt() {
+
+    }
+
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
 
-    
+
     }
-
-    override fun bindService(service: Intent?, conn: ServiceConnection, flags: Int): Boolean {
-
-        return super.bindService(service, conn, flags)
-    }
-
 
 
 }

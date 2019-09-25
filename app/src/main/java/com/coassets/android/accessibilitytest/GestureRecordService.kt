@@ -5,6 +5,7 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.graphics.PixelFormat
+import android.os.Binder
 import android.os.Build
 import android.os.IBinder
 import android.os.SystemClock
@@ -27,8 +28,15 @@ class GestureRecordService : Service() {
 
     private lateinit var gestureCatchView: GestureCatchView
 
+   class TestBinder : Binder() {
+       fun test(){
+           //XXX
+       }
+
+   }
+
     override fun onBind(intent: Intent?): IBinder? {
-        return null
+        return TestBinder()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -61,6 +69,8 @@ class GestureRecordService : Service() {
                 tvRecord.base = SystemClock.elapsedRealtime()
                 tvRecord.start()
                 startRecord()
+
+
             } else {
                 //STOP
                 imRecord.setImageResource(R.drawable.ic_circle_white)
@@ -73,6 +83,7 @@ class GestureRecordService : Service() {
         layClose.setOnClickListener {
             tvRecord.stop()
             windowManager.removeView(recordBtn)
+            windowManager.removeView(gestureCatchView)
         }
 
 
@@ -100,6 +111,10 @@ class GestureRecordService : Service() {
             override fun onGestureFinish(gestureType: GestureType, gestureInfo: GestureInfo) {
                 //TODO 是否有可能不断 enable GestureCatchView
                 //完成一个手势
+
+
+
+                disableGestureCatchView(windowManager, params, 0 + gestureInfo.duration)
                 dispatchGesture(gestureInfo)
             }
         }
@@ -110,8 +125,7 @@ class GestureRecordService : Service() {
 
 
     private fun dispatchGesture(gestureInfo: GestureInfo) {
-
-        GestureAccessibility.startGesture(this, gestureInfo)
+        //GestureAccessibility.startGesture(this, gestureInfo)
     }
 
     private fun startRecord() {
@@ -120,6 +134,18 @@ class GestureRecordService : Service() {
 
     private fun stopRecord() {
         gestureCatchView.stopRecord()
+    }
+
+
+    private fun disableGestureCatchView(windowManager: WindowManager, params: WindowManager.LayoutParams, duration: Long) {
+        params.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+        windowManager.updateViewLayout(gestureCatchView, params)
+        gestureCatchView.postDelayed({
+            params.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+            windowManager.updateViewLayout(gestureCatchView, params)
+        }, duration)
+        //TODO
+        //gestureCatchView.removeCallbacks()
     }
 
 
