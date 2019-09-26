@@ -36,7 +36,7 @@ class GestureRecordService : Service() {
         gestureCatchView.setBackgroundColor(Color.WHITE)
         gestureCatchView.alpha = 0.5f
         gestureViewParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
-
+        gestureCatchView.isEnabled = false
         gestureCatchView.onGestureListener = object : GestureCatchView.SimpleOnGestureListener() {
             override fun onGestureFinish(gestureType: GestureType, gestureInfo: GestureInfo) {
                 //TODO 是否有可能不断 enable GestureCatchView
@@ -151,17 +151,19 @@ class GestureRecordService : Service() {
 
     private fun enableGestureCatchView(enable: Boolean) {
         if (enable) {
-            gestureViewParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+           // gestureViewParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
             gestureView.alpha = 0.5f
+            gestureView.isEnabled = true
             //gestureViewParams.alpha = 1f
         } else {
-            gestureViewParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+            //gestureViewParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
+            gestureView.isEnabled = false
             gestureView.alpha = 1f
            //gestureViewParams.alpha = 0.5f
         }
-
         //TODO 会有延迟
         windowManager.updateViewLayout(gestureView, gestureViewParams)
+       // windowManager.removeViewImmediate()
     }
 
 
