@@ -10,6 +10,8 @@ import android.os.IBinder
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import com.coassets.android.accessibilitytest.gesture.GestureInfo
+import com.flodcoding.task_j.data.database.AppDatabase
+import kotlinx.coroutines.runBlocking
 
 
 /**
@@ -160,10 +162,21 @@ class GestureAccessibility : AccessibilityService(), GestureRecordService.OnGest
         }, true)
     }
 
-    override fun onStopRecord() {
+    override fun onStopRecord(gestureInfoList: ArrayList<GestureInfo>) {
+        if (gestureInfoList.isNotEmpty()) {
+            //有手勢錄入
+            //存入數據庫
+            runBlocking {
+                val result =
+                    AppDatabase.getInstance().gestureDao().insert(*(gestureInfoList.toArray(arrayOf<GestureInfo>())))
+                Log.d("GestureAccessibility", "result ${result.size}")
+            }
 
+        } else {
+            //沒有手勢錄入
+            Log.d("GestureAccessibility", "result Empty")
+        }
     }
-
 
     override fun onUnbindRecordService() {
         unbindService(mServiceConnection)
@@ -182,8 +195,6 @@ class GestureAccessibility : AccessibilityService(), GestureRecordService.OnGest
 
 
     }
-
-
 
 
 }

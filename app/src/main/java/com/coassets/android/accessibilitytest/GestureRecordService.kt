@@ -36,14 +36,12 @@ class GestureRecordService : Service() {
         val gestureCatchView = GestureCatchView(this)
         gestureCatchView.setBackgroundColor(Color.WHITE)
         gestureCatchView.alpha = 0.5f
-        gestureViewParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
-
         var isAfterGesture: Boolean
         gestureCatchView.onGestureListener = object : GestureCatchView.SimpleOnGestureListener() {
             override fun onGestureFinish(gestureType: GestureType, gestureInfo: GestureInfo) {
                 //TODO 是否有可能不断 enable GestureCatchView
+                Log.d("GestureAccessibility", "onGestureFinish")
                 isAfterGesture = true
-                gestureInfo.delayTime = 0
                 //由於 updateViewLayout會有延遲，所以添加一個監聽器，一旦更新完狀態就分發手勢給AccessibilityService
                 gestureCatchView.addOnLayoutChangeListener(object : View.OnLayoutChangeListener {
                     override fun onLayoutChange(v: View?, left: Int, top: Int, right: Int, bottom: Int, oldLeft: Int, oldTop: Int, oldRight: Int, oldBottom: Int) {
@@ -73,7 +71,9 @@ class GestureRecordService : Service() {
 
 
         params.format = PixelFormat.RGBA_8888
-        params.flags =  WindowManager.LayoutParams.FLAG_FULLSCREEN or WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
+        params.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
+                WindowManager.LayoutParams.FLAG_FULLSCREEN or
+                WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
         params.width = WindowManager.LayoutParams.MATCH_PARENT
         params.height = WindowManager.LayoutParams.MATCH_PARENT
         params
@@ -138,7 +138,7 @@ class GestureRecordService : Service() {
     interface OnGestureRecordServiceListener {
         fun onStartRecord()
         fun onRecorded(gestureInfo: GestureInfo)
-        fun onStopRecord()
+        fun onStopRecord(gestureInfoList: ArrayList<GestureInfo>)
         fun onUnbindRecordService()
     }
 
@@ -183,8 +183,8 @@ class GestureRecordService : Service() {
 
     private fun stopRecord() {
         enableGestureCatchView(false)
-        gestureView.stopRecord()
-        onGestureRecordServiceListener?.onStopRecord()
+        val result = gestureView.stopRecord()
+        onGestureRecordServiceListener?.onStopRecord(result)
     }
 
     private fun closeRecord() {
@@ -196,13 +196,15 @@ class GestureRecordService : Service() {
 
     private fun enableGestureCatchView(enable: Boolean) {
         if (enable) {
-            gestureViewParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
-            gestureView.alpha = 0.5f
-            //gestureViewParams.alpha = 1f
+            gestureViewParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+                    WindowManager.LayoutParams.FLAG_FULLSCREEN or
+                    WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
+            gestureView.alpha = 0.3f
         } else {
-            gestureViewParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE
-            gestureView.alpha = 1f
-            //gestureViewParams.alpha = 0.5f
+            gestureViewParams.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCHABLE or
+                    WindowManager.LayoutParams.FLAG_FULLSCREEN or
+                    WindowManager.LayoutParams.FLAG_LAYOUT_IN_SCREEN
+            gestureView.alpha = 0.6f
         }
         windowManager.updateViewLayout(gestureView, gestureViewParams)
     }

@@ -19,7 +19,7 @@ import com.coassets.android.accessibilitytest.ParcelableUtil
 
 @Suppress("NULLABILITY_MISMATCH_BASED_ON_JAVA_ANNOTATIONS")
 @Entity
-@TypeConverters(GestureConverter::class)
+@TypeConverters(GestureInfoConverter::class)
 data class GestureInfo(
     @PrimaryKey(autoGenerate = true)
     var id: Long = 0,
@@ -66,7 +66,7 @@ data class GestureInfo(
 }
 
 
-class GestureConverter {
+class GestureInfoConverter {
 
     @TypeConverter
     fun gestureToByteArray(gesture: Gesture): ByteArray {

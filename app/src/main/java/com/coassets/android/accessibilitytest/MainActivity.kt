@@ -44,6 +44,7 @@ class MainActivity : AppCompatActivity() {
 
             // startActivity(Intent(this,UnlockGestureActivity::class.java))
             FloatingWindowsUtil.startFloatingService(this)
+            //window.addFlags()
         }
     }
 
