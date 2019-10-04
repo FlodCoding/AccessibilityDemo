@@ -5,6 +5,8 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.coassets.android.accessibilitytest.database.GestureDao
+import com.coassets.android.accessibilitytest.database.GestureEntityDao
+import com.coassets.android.accessibilitytest.gesture.GestureEntity
 import com.coassets.android.accessibilitytest.gesture.GestureInfo
 
 /**
@@ -14,9 +16,10 @@ import com.coassets.android.accessibilitytest.gesture.GestureInfo
  * UseDes:
  *
  */
-@Database(entities = [GestureInfo::class], version = 1)
+@Database(entities = [GestureInfo::class,GestureEntity::class], version = 1)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun gestureDao(): GestureDao
+    abstract fun gestureEntityDao(): GestureEntityDao
 
     companion object {
         @Volatile

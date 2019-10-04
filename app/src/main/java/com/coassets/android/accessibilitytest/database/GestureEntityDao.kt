@@ -4,7 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.coassets.android.accessibilitytest.gesture.GestureInfo
+import com.coassets.android.accessibilitytest.gesture.GestureEntity
 
 /**
  * SimpleDes:
@@ -15,13 +15,13 @@ import com.coassets.android.accessibilitytest.gesture.GestureInfo
  */
 
 @Dao
-interface GestureDao {
+interface GestureEntityDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(vararg gestureInfo: GestureInfo):Array<Long>
+    suspend fun insert(vararg entity: GestureEntity):Array<Long>
 
-    @Query("SELECT * FROM gestureinfo")
-    suspend fun getAll(): List<GestureInfo>
+    @Query("SELECT * FROM gestureentity")
+    suspend fun getAll(): List<GestureEntity>
 
 
 }

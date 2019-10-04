@@ -9,7 +9,9 @@ import android.content.ServiceConnection
 import android.os.IBinder
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
+import com.coassets.android.accessibilitytest.gesture.GestureEntity
 import com.coassets.android.accessibilitytest.gesture.GestureInfo
+import com.coassets.android.accessibilitytest.gesture.GestureInfoBundle
 import com.flodcoding.task_j.data.database.AppDatabase
 import kotlinx.coroutines.runBlocking
 
@@ -146,7 +148,12 @@ class GestureAccessibility : AccessibilityService(), GestureRecordService.OnGest
 
 
     override fun onStartRecord() {
+        runBlocking {
+            val result = AppDatabase.getInstance().gestureEntityDao().getAll()
 
+            if (result.isNotEmpty())
+            dispatchGestures(ArrayList(result[0].gestureInfoBundle.gestureInfoList))
+        }
     }
 
 
@@ -167,9 +174,14 @@ class GestureAccessibility : AccessibilityService(), GestureRecordService.OnGest
             //有手勢錄入
             //存入數據庫
             runBlocking {
-                val result =
-                    AppDatabase.getInstance().gestureDao().insert(*(gestureInfoList.toArray(arrayOf<GestureInfo>())))
+                /* val result =
+                     AppDatabase.getInstance().gestureDao().insert(*(gestureInfoList.toArray(arrayOf<GestureInfo>())))
+                 */
+                val result = AppDatabase.getInstance().gestureEntityDao()
+                    .insert(GestureEntity(gestureInfoBundle = GestureInfoBundle(gestureInfoList)))
                 Log.d("GestureAccessibility", "result ${result.size}")
+
+
             }
 
         } else {
